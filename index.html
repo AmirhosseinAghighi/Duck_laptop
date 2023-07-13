@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script
+      src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"
+      integrity="sha256-6XMVI0zB8cRzfZjqKcD01PBsAy3FlDASrlC8SxCpInY="
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Dark Side Debenpcy -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+
+    <title>United-laptop</title>
+  </head>
+  <body v-if="quickControl.buttons[6].value">
+    <div class="screen">
+
+      <div class="taskbar" id="taskbar">
+        <div style="width: 200px"></div>
+        <div class="taskbar-apps">
+          <div
+            v-for="app in apps"
+            v-if="app.action"
+            v-on:click="app.action"
+            class="taskbar-icon"
+            :style="app.active && {backgroundColor: 'rgb(255 255 255 / 23%)', borderRadius: '3px'}"
+          >
+            <img width="34" v-bind:src="app.url" />
+          </div>
+
+          <div
+            v-for="app in apps"
+            v-if="!app.action"
+            v-on:click="openApp(app.name)"
+            class="taskbar-icon"
+            :style="app.active && {backgroundColor: 'rgb(255 255 255 / 23%)', borderRadius: '3px'}"
+          >
+            <img width="34" v-bind:src="app.url" />
+          </div>
+        </div>
+        <div class="taskbar-info">
+          <div class="taskbar-info-icons">
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              class="svg-inline--fa fa-chevron-up"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 448 512"
+              style="width: 10px; height: 10px"
+            >
+              <path
+                fill="currentColor"
+                d="M416 352c-8.188 0-16.38-3.125-22.62-9.375L224 173.3l-169.4 169.4c-12.5 12.5-32.75 12.5-45.25 0s-12.5-32.75 0-45.25l192-192c12.5-12.5 32.75-12.5 45.25 0l192 192c12.5 12.5 12.5 32.75 0 45.25C432.4 348.9 424.2 352 416 352z"
+              ></path>
+            </svg>
+          </div>
+
+          <div @click="click()" class="taskbar-info-icons-list">
+            <div
+              class="taskbar-info-icons"
+              v-for="icon in infoIcons"
+              v-if="icon.if"
+            >
+              <img width="16" v-bind:src="icon.url" />
+            </div>
+          </div>
+
+          <div class="taskbar-info-time">
+            <p>2:02 AM</p>
+            <p>06/14/22</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-control" id="quick-control">
+        <Transition name="quick-control" tag="div">
+          <div class="quick-setting" v-if="open">
+            <div class="quick-settings">
+              <div
+                class="quick-control-button"
+                v-for="(button, index) in buttons"
+                v-if="typeof button.value === 'boolean'"
+              >
+                <div
+                  class="quick-control-button-box"
+                  :class="button.value && {'quick-control-button-active': true}"
+                  v-on:click="toggleSetting(index)"
+                >
+                  <img width="14" :src="button.url" />
+                </div>
+                <p>{{ button.name }}</p>
+              </div>
+
+              <div
+                class="quick-control-slider"
+                v-for="(button, index) in buttons"
+                v-if="typeof button.value !== 'boolean'"
+              >
+                <img width="22" :src="button.url" style="margin-right: 8px" />
+                <input type="range" min="0" max="100" v-model="button.value" />
+              </div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- <Transition name="quick-control" tag="div">
+                <<div class="quick-battery">
+                    <battery />
+                </div>>
+            </Transition> -->
+      </div>
+
+      <div
+        class="desktop"
+        id="desktop"
+        style="width: 100%; height: calc(100% - 4vh)"
+      >
+      <Transition name="start-menu" tag="div">
+        <div class="start-menu" v-if="startMenu">
+          <input type="text" class="start-menu-search" placeholder="🔎 Type here to search">
+          <div class="start-menu-up">
+            <div class="start-menu-title">
+              Pinned
+            </div>
+            <div class="start-menu-apps">
+              <div class="start-menu-app" v-for="(app, index) in apps" v-if="index < 18 && app.pinned">
+                <img width="32" :src="app.url">
+                <div class="start-menu-text">{{app.name}}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="start-menu-up">
+            <div class="start-menu-title">
+              Recommended
+            </div>
+            <div class="start-menu-apps">
+              <div class="start-menu-app" v-for="(app, index) in apps" v-if="index < 18 && app.recommended">
+                <img width="32" :src="app.url">
+                <div class="start-menu-text">{{app.name}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+        <div class="desktop-container">
+          <div
+            v-for="(app, index) in apps"
+            class="desktop-icon"
+            v-on:click="Select(index)"
+            v-on:dblclick="Open(app.id)"
+            :style="selectedIndex === index && {background: 'rgba(240, 248, 255, 0.315)'}"
+            :class="app.url !== '' && {'desktop-icon-hoverable': true}"
+          >
+            <img width="34" v-bind:src="app.url" />
+            <p>{{ app.name }}</p>
+          </div>
+        </div>
+
+      <Transition name="app" tag="div">
+        <div
+          class="draggable fileExplorer"
+          v-if="appsData['file-explorer'].open"
+          :style="appsData['file-explorer'].zIndex !== 1 ? {zIndex: appsData['file-explorer'].zIndex} : {}"
+          v-on:click="getAppFront('file-explorer')"
+        >
+          <div class="toolbar">
+            <div
+              class="toolbar-info"
+              style="
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                color: white;
+              "
+            >
+              <img src="images/explorer.png" width="14" />
+              <p style="font-size: 0.64em">File Explorer</p>
+            </div>
+            <div class="toolbar-btns">
+              <div
+                class="toolbar-btn"
+                v-on:click="Close('file-explorer', true)"
+              >
+                <img src="images/minimize.png" width="14" />
+              </div>
+
+              <div class="toolbar-btn" v-on:click="Maximize('file-explorer')">
+                <img src="images/maxmin.png" width="14" />
+              </div>
+
+              <div
+                class="toolbar-btn toolbar-btn-close"
+                v-on:click="Close('file-explorer', false)"
+              >
+                <img src="images/close.png" width="14" />
+              </div>
+            </div>
+          </div>
+          <div class="app-content"></div>
+        </div>
+      </Transition>
+
+      <Transition name="app" tag="div">
+        <div
+          :class="appsData['seven'].maximized ? {'dark-side': true, 'maximized': true} : {'draggable': true, 'dark-side': true}"
+          v-if="appsData['seven'].open"
+          :style="appsData['seven'].zIndex !== 1 ? {zIndex: appsData['seven'].zIndex} : {}"
+          v-on:click="getAppFront('seven')"
+        >
+          <div class="toolbar">
+            <div
+              class="toolbar-info"
+              style="
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                color: white;
+              "
+            >
+              <img src="images/seven.png" width="14" />
+              <p style="font-size: 0.64em">Dark Side</p>
+            </div>
+            <div class="toolbar-btns">
+              <div class="toolbar-btn" v-on:click="Close('seven', true)">
+                <img src="images/minimize.png" width="14" />
+              </div>
+
+              <div class="toolbar-btn" v-on:click="Maximize('seven')">
+                <img src="images/maxmin.png" width="14" />
+              </div>
+
+              <div
+                class="toolbar-btn toolbar-btn-close"
+                v-on:click="Close('seven', false)"
+              >
+                <img src="images/close.png" width="14" />
+              </div>
+            </div>
+          </div>
+          <div class="app-content dark-side-scroll">
+            <footer class="footer">
+              <div class="footer-logo"></div>
+              <ul class="footer-items-list">
+                <li
+                  onclick="openPage(event, 'user-account')"
+                  class="footer-item"
+                >
+                  <i
+                    class="fa fa-user-secret"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+                <li onclick="openPage(event, 'drug-box')" class="footer-item">
+                  <i
+                    class="fa fa-shopping-basket"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+                <li onclick="openPage(event, 'ls-map')" class="footer-item">
+                  <i
+                    class="fa fa-map-marker"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+
+                <li
+                  onclick="openPage(event, 'dark-missions')"
+                  class="footer-item"
+                >
+                  <i
+                    class="fa fa-question-circle-o"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+                <li
+                  onclick="openPage(event, 'bounty-hunter')"
+                  class="footer-item"
+                >
+                  <i
+                    class="fa fa-crosshairs"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+                <li
+                  onclick="openPage(event, 'dark-offers')"
+                  class="footer-item"
+                >
+                  <i
+                    class="fa fa-handshake-o"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+                <li onclick="openPage(event, 'guidelines')" class="footer-item">
+                  <i
+                    class="fa fa-puzzle-piece"
+                    style="color: #747580 !important"
+                  ></i>
+                </li>
+              </ul>
+            </footer>
+            <div class="display-container">
+              <div class="left-sidebar">
+                <div class="user-profile-container">
+                  <div class="section-one">
+                    <div class="section-one-left-side">
+                      <div class="profile-circle">
+                        <div class="profile-circle-hover">
+                          <i class="fa fa-refresh"></i>
+                        </div>
+                      </div>
+                      <span id="profile-circle-name"
+                        >{{ appsData['seven'].data.account.username }}</span
+                      >
+                    </div>
+                    <div class="section-one-right-side">
+                      <button id="bank-btn" class="right-side-btn">Bank</button>
+                      <button id="crypto-btn" class="right-side-btn">
+                        Crypto
+                      </button>
+                      <button id="newchat" class="right-side-btn">Chat</button>
+                    </div>
+                  </div>
+                  <div class="section-two">
+                    <div class="control-panel-container">
+                      <div class="control-panel">
+                        <button
+                          v-on:click="Close('seven', false)"
+                          id=" control-power-off"
+                          class="control-btn fa fa-power-off"
+                        ></button>
+                        <button
+                          id="control-log-out"
+                          class="control-btn fa fa-sign-out"
+                        ></button>
+                        <button
+                          id="control-nearby-search"
+                          class="control-btn fa fa-podcast"
+                          :style="appsData['seven'].data.account.setting.radar && {color: 'red'}"
+                          v-on:click="sevenChangeSetting('radar')"
+                        ></button>
+                        <button
+                          id="control-dnd"
+                          class="control-btn fa fa-minus-circle"
+                          :style="appsData['seven'].data.account.setting.offlineMode && {color: 'lightgreen'}"
+                          v-on:click="sevenChangeSetting('offlineMode')"
+                        ></button>
+                        <button
+                          id="control-notify"
+                          class="control-btn fa fa-bell"
+                          :style="appsData['seven'].data.account.setting.notif && {color: 'yellow'}"
+                          v-on:click="sevenChangeSetting('notif')"
+                        ></button>
+                        <button
+                          id="control-just-friends"
+                          class="control-btn fa fa-lock"
+                          :style="appsData['seven'].data.account.setting.lock && {color: 'gold'}"
+                          v-on:click="sevenChangeSetting('lock')"
+                        ></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="user-contacts-container">
+                  <div class="cartel">
+                    <span class="user-contacts-container-title">CARTEL</span>
+                    <hr />
+                    <div
+                      class="chat-box-container"
+                      v-for="user in appsData['seven'].data.users.cartel"
+                      v-on:click="SevenOpenChat(user.username)"
+                    >
+                      <div class="chat-box-profile">
+                        <div
+                          class="chat-box-profile-notify"
+                          v-if="user.messageCount !== 0"
+                        >
+                          {{ user.messageCount}}
+                        </div>
+                      </div>
+                      <span class="chat-box-uername">{{ user.username }}</span>
+                    </div>
+                  </div>
+                  <div class="dealers">
+                    <span class="user-contacts-container-title">DEALERS</span>
+                    <hr />
+
+                    <div
+                      class="chat-box-container"
+                      v-for="user in appsData['seven'].data.users.dealers"
+                      v-on:click="SevenOpenChat(user.username)"
+                    >
+                      <div class="chat-box-profile">
+                        <div
+                          class="chat-box-profile-notify"
+                          v-if="user.messageCount !== 0"
+                        >
+                          {{ user.messageCount}}
+                        </div>
+                      </div>
+                      <span class="chat-box-uername">{{ user.username }}</span>
+                    </div>
+                  </div>
+                  <div class="clients">
+                    <span class="user-contacts-container-title">CLIENTS</span>
+                    <hr />
+
+                    <div
+                      class="chat-box-container"
+                      v-for="user in appsData['seven'].data.users.clients"
+                      v-on:click="SevenOpenChat(user.username)"
+                    >
+                      <div class="chat-box-profile">
+                        <div
+                          class="chat-box-profile-notify"
+                          v-if="user.messageCount !== 0"
+                        >
+                          {{ user.messageCount}}
+                        </div>
+                      </div>
+                      <span class="chat-box-uername">{{ user.username }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="drug-box" class="right-sidebar">
+                <div class="drugs-list">
+                  <div
+                    class="drug-box"
+                    v-for="(item, index) in appsData['seven'].data.shop"
+                  >
+                    <div :id="item.id" class="profile"></div>
+                    <span id="drug-name">{{ item.name }}</span>
+                    <div class="drug-price">
+                      <span
+                        >$ <span v-if="!item.edit">{{ item.price }}</span></span
+                      >
+                      <input
+                        type="text"
+                        :style="{background: 'none', outline: 'none', border: 'none'}"
+                        v-if="item.edit"
+                        v-model="item.price"
+                      />
+                    </div>
+                    <div
+                      class="btns-box"
+                      v-if="appsData['seven'].data.account.role === 'admin'"
+                    >
+                      <i
+                        class="fa fa-trash-o"
+                        v-on:click="DeleteShopItem(index)"
+                      ></i>
+                      <i
+                        class="fa fa-edit"
+                        v-on:click="toggleShopItemEdit(index)"
+                      ></i>
+                      <i
+                        id="off-on"
+                        v-if="!item.active"
+                        v-on:click="changeShopItemStatus(index)"
+                        class="fa fa-toggle-off"
+                      ></i>
+                      <i
+                        id="off-on"
+                        v-if="item.active"
+                        v-on:click="changeShopItemStatus(index)"
+                        class="fa fa-toggle-on"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="ls-map" class="right-sidebar">
+                <div class="map-container">
+                  <div class="image-container">
+                    <img
+                      src="/images/map-new.png"
+                      alt="lossantos map"
+                      width="550"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div id="user-account" class="right-sidebar">
+                <div class="user-account-container">
+                  <div class="friend-requests-container">
+                    <div
+                      class="friend-request-box"
+                      v-for="(req, citizen) in appsData['seven'].data.account.friendRequests"
+                    >
+                      <div class="friend-request-circle-profile"></div>
+                      <div class="friend-request-name-container">
+                        <span id="friend-request-name">{{ req }}</span>
+                      </div>
+                      <div class="friend-request-btn-container">
+                        <i
+                          class="friend-request-btn fa fa-check"
+                          v-on:click="AcceptSevenFriendRequest(citizen, req)"
+                        ></i>
+                        <i
+                          class="friend-request-btn fa fa-remove"
+                          v-on:click="RejectSevenFriendRequest(citizen)"
+                        ></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      width: 98%;
+                      border-bottom: 1px solid #747580;
+                      color: #747580;
+                    "
+                    class="tagline"
+                  >
+                    <h3 style="margin: 1vh">Friends List</h3>
+                  </div>
+                  <div class="friends-list-container">
+                    <!-- agar taraf offline bood in style ro bede be class friends-box => filter: grayscale(5); -->
+                    <div
+                      class="friends-box"
+                      v-for="(friend, citizen) in appsData['seven'].data.account.friends"
+                      :style="!friend.online && {filter: 'grayscale(5)'}"
+                    >
+                      <div class="friends-box-profile">
+                        <div class="friends-box-profile-status">
+                          <div class="friends-box-profile-status-online">
+                            <span v-if="friend.online">&#128526;</span>
+                          </div>
+                          <div class="friends-box-profile-status-offline">
+                            <span v-if="!friend.online">&#128564;</span>
+                          </div>
+                        </div>
+                      </div>
+                      <span id="username">{{ friend.username }}</span>
+                      <div class="friends-box-btn-container">
+                        <!-- <i style="color: #ffd838;" id="is-favorite-true" class="friends-box-btn fa fa-star"></i> -->
+                        <i
+                          id="send-message"
+                          class="friends-box-btn fa fa-comment"
+                        ></i>
+                        <i
+                          id="remove-friend"
+                          class="friends-box-btn fa fa-trash"
+                          v-on:click="SevenRemoveFriend(citizen)"
+                        ></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      width: 98%;
+                      border-bottom: 1px solid #747580;
+                      color: #747580;
+                    "
+                    class="tagline"
+                  >
+                    <h3 style="margin: 1vh">Radar</h3>
+                  </div>
+
+                  <!-- RadarBox -->
+                  <div class="radar-container">
+                    <div
+                      class="friends-box"
+                      v-for="user in appsData['seven'].data.radar"
+                      v-if="user.username !== appsData['seven'].data.account.username"
+                    >
+                      <div class="friends-box-profile"></div>
+                      <span id="username">{{ user.username }}</span>
+                      <div class="friends-box-btn-container">
+                        <i
+                          id="remove-friend"
+                          class="friends-box-btn fa fa-user-plus"
+                          v-on:click="sevenAddFriend(user.citizen)"
+                        ></i>
+                        <!-- <i
+                          id="send-message"
+                          class="friends-box-btn fa fa-ban"
+                        ></i> -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="dark-missions" class="right-sidebar">
+                <div class="missions-box-container">
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+
+                  <div class="mission-box">
+                    <div class="icon-container">
+                      <i class="fa fa-hourglass"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="mission-box-btn">Get it</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="bounty-hunter" class="right-sidebar">
+                <div
+                  style="
+                    width: 100%;
+                    height: 8%;
+                    background-color: rgb(77, 190, 255);
+                  "
+                  class="d-flex justify-content-center align-items-center"
+                >
+                  <span>+ Add</span>
+                </div>
+                <div class="bounty-hunter-container">
+                  <div
+                    class="bounty-box"
+                    v-for="bounty in appsData['seven'].data.bounty"
+                  >
+                    <div id="bounty-profile" class="bounty-circle-profile">
+                      <div class="bounty-status">
+                        <!-- fa fa-ban // fa fa-times-circle // fa fa-check-circle -->
+                        <i class="fa fa-check-circle"></i>
+                      </div>
+                    </div>
+                    <span id="bounty-name">{{ bounty.name }}</span>
+                    <div class="bounty-price">
+                      <span id="bounty-price">{{ bounty.price }} BTC</span>
+                    </div>
+                    <div class="bounty-desc">
+                      <span>{{ bounty.description }}</span>
+                    </div>
+                    <div class="bounty-btn-container">
+                      <button
+                        class="mission-box-btn"
+                        v-on:click="requestForBounty(bounty.id)"
+                      >
+                        Do it
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="dark-offers" class="right-sidebar">
+                <div class="dark-offers-container">
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+
+                  <div class="dark-offers-box">
+                    <div class="icon-container">
+                      <i class="fa fa-refresh"></i>
+                    </div>
+                    <div class="text-container">
+                      <span
+                        >Lorem ipsum dolor, sit amet consectetur adipisicing
+                        elit. Eveniet, quos! Optio consequatur.</span
+                      >
+                    </div>
+                    <div class="price-container"><span>5,000 BTC</span></div>
+                    <div class="btns-container">
+                      <button class="dark-offers-box-btn">Accept</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="guidelines" class="right-sidebar">guidelines</div>
+
+              <div id="chat" class="right-sidebar">
+                <div
+                  style="
+                    width: 100%;
+                    height: 8%;
+                    background-color: rgb(77, 190, 255);
+                  "
+                  class="d-flex justify-content-center align-items-center"
+                >
+                  <span>{{ appsData['seven'].data.chat_Username }}</span>
+                </div>
+
+                <div class="chats">
+                  <div
+                    :class="[chat.from === appsData['seven'].data.account.username ? {'chat-message': true, 'chat-owner': true} : {'chat-message': true}]"
+                    v-for="chat in appsData['seven'].data.chat"
+                  >
+                    {{ chat.type === 'bounty-req' ?
+                    langs["bounty-volunteer"](chat.message) : "" }}
+                    {{chat.type === 'message' ? chat.message : ""}}
+                    <br />
+                    <div v-if="chat.type === 'bounty-req'">
+                      <button
+                        style="
+                          padding: 5px;
+                          border: none;
+                          outline: none;
+                          border-radius: 25px;
+                          background: green;
+                        "
+                      >
+                        accept
+                      </button>
+                      <button
+                        style="
+                          padding: 5px;
+                          border: none;
+                          outline: none;
+                          border-radius: 25px;
+                          background: red;
+                        "
+                      >
+                        reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-input">
+                  <i
+                    class="fa fa-paper-plane"
+                    v-on:click="sevenSendMessage(appsData['seven'].data.chat_Username)"
+                  ></i>
+                  <input
+                    v-model="appsData['seven'].data.chat_input"
+                    type="text"
+                    placeholder="text ..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition name="app" tag="div">
+        <div
+          :class="appsData['minecraft'].maximized ? {'dark-side': true, 'maximized': true} : {'draggable': true, 'dark-side': true}"
+          v-if="appsData['minecraft'].open"
+          :style="appsData['minecraft'].zIndex !== 1 ? {zIndex: appsData['minecraft'].zIndex} : {}"
+          v-on:click="getAppFront('minecraft')"
+        >
+          <div class="toolbar">
+            <div
+              class="toolbar-info"
+              style="
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                color: white;
+              "
+            >
+              <img src="images/minecraft.png" width="14" />
+              <p style="font-size: 0.64em">Minecraft</p>
+            </div>
+            <div class="toolbar-btns">
+              <div class="toolbar-btn" v-on:click="Close('minecraft', true)">
+                <img src="images/minimize.png" width="14" />
+              </div>
+
+              <div class="toolbar-btn" v-on:click="Maximize('minecraft')">
+                <img src="images/maxmin.png" width="14" />
+              </div>
+
+              <div
+                class="toolbar-btn toolbar-btn-close"
+                v-on:click="Close('minecraft', false)"
+              >
+                <img src="images/close.png" width="14" />
+              </div>
+            </div>
+          </div>
+          <div class="app-content">
+            <iframe
+              src="https://classic.minecraft.net"
+              style="height: 100%; width: 100%"
+              frameborder="0"
+            ></iframe>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition name="app" tag="div">
+        <div
+          :class="appsData['stick-ninja'].maximized ? {'dark-side': true, 'maximized': true} : {'draggable': true, 'dark-side': true}"
+          v-if="appsData['stick-ninja'].open"
+          :style="appsData['stick-ninja'].zIndex !== 1 ? {zIndex: appsData['stick-ninja'].zIndex} : {}"
+          v-on:click="getAppFront('stick-ninja')"
+        >
+          <div class="toolbar">
+            <div
+              class="toolbar-info"
+              style="
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                color: white;
+              "
+            >
+              <img src="images/stick-ninja.png" width="14" />
+              <p style="font-size: 0.64em">Stick Ninja</p>
+            </div>
+            <div class="toolbar-btns">
+              <div class="toolbar-btn" v-on:click="Close('stick-ninja', true)">
+                <img src="images/minimize.png" width="14" />
+              </div>
+
+              <div class="toolbar-btn" v-on:click="Maximize('stick-ninja')">
+                <img src="images/maxmin.png" width="14" />
+              </div>
+
+              <div
+                class="toolbar-btn toolbar-btn-close"
+                v-on:click="Close('stick-ninja', false)"
+              >
+                <img src="images/close.png" width="14" />
+              </div>
+            </div>
+          </div>
+          <div class="app-content">
+            <iframe
+              src="https://rededge967.github.io/stick-ninja"
+              style="height: 100%; width: 100%"
+              frameborder="0"
+            ></iframe>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition name="app" tag="div">
+        <div
+          :class="appsData['setting'].maximized ? {'dark-side': true, 'maximized': true} : {'draggable': true, 'dark-side': true}"
+          v-if="appsData['setting'].open"
+          :style="appsData['setting'].zIndex !== 1 ? {zIndex: appsData['setting'].zIndex} : {}"
+          v-on:click="getAppFront('setting')"
+        >
+          <div class="toolbar">
+            <div
+              class="toolbar-info"
+              style="
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                color: white;
+              "
+            >
+              <img src="images/setting.png" width="14" />
+              <p style="font-size: 0.64em">Stick Ninja</p>
+            </div>
+            <div class="toolbar-btns">
+              <div class="toolbar-btn" v-on:click="Close('setting', true)">
+                <img src="images/minimize.png" width="14" />
+              </div>
+
+              <div class="toolbar-btn" v-on:click="Maximize('setting')">
+                <img src="images/maxmin.png" width="14" />
+              </div>
+
+              <div
+                class="toolbar-btn toolbar-btn-close"
+                v-on:click="Close('setting', false)"
+              >
+                <img src="images/close.png" width="14" />
+              </div>
+            </div>
+          </div>
+          <div class="app-content">
+            <div class="setting"> 
+              <div class="setting-sidebar">
+                <div class="setting-sidebar-top">
+                  <div class="setting-sidebar-profile">
+                    <div class="setting-sidebar-profile-pic">
+                      <img src="images/user.png" width="60" height="60">
+                      <div class="setting-sidebar-profile-detail">
+                        <div style="font-weight: 600; font-size: 14px;">DuckWichTrust</div>
+                        <div style="font-size: 12px;">Local Account</div>
+                      </div>
+                    </div>
+                    <input style="margin-top: 20px; padding-left: 5px;" type="text" class="start-menu-search" placeholder="Find a setting">
+                  </div>
+                </div>
+                <div class="setting-tabs-list">
+                  <div class="setting-tab-item">
+                    <img src="images/System.png" alt="" height="16" width="16">
+                    <div style="padding-left: 10px;">System</div>
+                  </div>
+                </div>
+              </div>
+              <div class="setting-main">test2</div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      </div>
+    </div>
+    <span
+      id="brightoverlay"
+      :style="nightLight ? {opacity: brightness + 0.6, background: '#ff00003b'} : {opacity: brightness, transition: '0.5s'}"
+    ></span>
+  </body>
+  <script src="Vue-Templates.js"></script>
+  <script type="text/javascript" src="ui-config.js"></script>
+  <script type="text/javascript" src="app.js"></script>
+</html>
